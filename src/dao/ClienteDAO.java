@@ -7,12 +7,13 @@ package dao;
 
 import conexao.Conexao;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+
 import model.Cliente;
 
 /**
@@ -27,18 +28,17 @@ public class ClienteDAO {
         try {
             //cria espaço de trabalho SQL, é a área no java onde
             //vamos executar os scripts SQL
-            Statement stat = con.createStatement();
             String sql;
-            sql = "insert into clientes values "
-                    + "(null,"
-                    + "'" + cVO.getNomeCliente() + "',"
-                    + "'" + cVO.getCpf() + "');";
-
-            stat.execute(sql);
+            sql = "insert into clientes values(null,?,?,null,?,?)";
+            PreparedStatement pst = con.prepareStatement(sql);
+            pst.setString(1, cVO.getNomeCliente());
+            pst.setString(2, cVO.getCpf());
+            pst.setString(3, cVO.getEndereco());
+            pst.setString(4, cVO.getTelefone());
+            pst.executeUpdate();
         } catch (SQLException ex) {
             System.out.println("Erro ao cadastrar !\n"
                     + ex.getMessage());
-
         }
     }//fim do cadastrar
 
@@ -55,6 +55,8 @@ public class ClienteDAO {
                 c.setIdCliente(rs.getInt("idcliente"));
                 c.setNomeCliente(rs.getString("nome"));
                 c.setCpf(rs.getString("cpf"));
+                c.setEndereco(rs.getString("endereco"));
+                c.setTelefone(rs.getString("telefone"));
                 clientes.add(c);
             }
             return clientes;
@@ -69,17 +71,20 @@ public class ClienteDAO {
         Connection con = Conexao.getConexao();
         Cliente c = null;
         try {
-            Statement stat = con.createStatement();
-            String sql = "select*from clientes where cpf ='" + cpf + "'";
-            ResultSet rs = stat.executeQuery(sql);
-            
+
+            String sql = "select*from clientes where cpf = ?";
+            PreparedStatement pst = con.prepareStatement(sql);
+            pst.setString(1, cpf);
+            ResultSet rs = pst.executeQuery(sql);
+
             while (rs.next()) {
-               
+
                 //lado do java|*| lado do banco  ( lado do banco)
                 c.setIdCliente(rs.getInt("idcliente"));
                 c.setNomeCliente(rs.getString("nome"));
                 c.setCpf(rs.getString("cpf"));
-                
+                c.setEndereco(rs.getString("endereco"));
+                c.setTelefone(rs.getString("telefone"));
             }
 
         } catch (SQLException ex) {
@@ -89,4 +94,37 @@ public class ClienteDAO {
         }
         return c;
     }
+
+    public void deletarClienteDAO(String cpf) {
+        Connection con = Conexao.getConexao();
+
+        try {
+            String sql = "delete from clientes where cpf = ?";
+            PreparedStatement pst = con.prepareStatement(sql);
+            pst.setString(1, cpf);
+            pst.executeUpdate();
+        } catch (SQLException ex) {
+            System.out.println("Erro ao deletar CPF\n"
+                    + ex.getMessage());
+        }
+    }
+
+    public void atualizaClienteByDoc(Cliente cVO) {
+        Connection con = Conexao.getConexao();
+        try {
+            String sql = "update set nome = ?, endereco = ?, telefone = ? "
+                    + "where cpf = ?";
+            PreparedStatement pst = con.prepareStatement(sql);
+            pst.setString(1, cVO.getNomeCliente());
+            pst.setString(2, cVO.getEndereco());
+            pst.setString(3, cVO.getTelefone());
+            pst.setString(4, cVO.getCpf());
+            pst.executeUpdate();
+
+        } catch (SQLException ex) {
+            System.out.println("Erro ao Atualizar CPF!\n");
+
+        }
+    }
+
 }
