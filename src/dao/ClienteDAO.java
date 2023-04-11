@@ -13,7 +13,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
-
 import model.Cliente;
 
 /**
@@ -24,10 +23,11 @@ public class ClienteDAO {
 
     public void cadastrarClienteDAO(Cliente cVO) {
         //busca conexao com banco de dados
-        Connection con = Conexao.getConexao();
+
         try {
             //cria espaço de trabalho SQL, é a área no java onde
             //vamos executar os scripts SQL
+            Connection con = Conexao.getConexao();
             String sql;
             sql = "insert into clientes values(null,?,?,null,?,?)";
             PreparedStatement pst = con.prepareStatement(sql);
@@ -43,12 +43,13 @@ public class ClienteDAO {
     }//fim do cadastrar
 
     public ArrayList<Cliente> getClienteBD() {
-        Connection con = Conexao.getConexao();
+ ArrayList<Cliente> clientes = new ArrayList<>();
         try {
+            Connection con = Conexao.getConexao();
             Statement stat = con.createStatement();
             String sql = "select* from clientes";
             ResultSet rs = stat.executeQuery(sql);
-            ArrayList<Cliente> clientes = new ArrayList<>();
+           
             while (rs.next()) {
                 Cliente c = new Cliente();
                 //lado do java|*| lado do banco  ( lado do banco)
@@ -59,23 +60,25 @@ public class ClienteDAO {
                 c.setTelefone(rs.getString("telefone"));
                 clientes.add(c);
             }
-            return clientes;
+            
         } catch (SQLException ex) {
             System.out.println("Erro ao listar!\n"
                     + ex.getMessage());
         }
-        return null;
+       return clientes;
+               
     }//fim do listar
 
     public Cliente getClienteByDoc(String cpf) {
-        Connection con = Conexao.getConexao();
-        Cliente c = null;
+
+       Cliente c = new Cliente();
         try {
+            Connection con = Conexao.getConexao();
 
             String sql = "select*from clientes where cpf = ?";
             PreparedStatement pst = con.prepareStatement(sql);
             pst.setString(1, cpf);
-            ResultSet rs = pst.executeQuery(sql);
+            ResultSet rs = pst.executeQuery();
 
             while (rs.next()) {
 
@@ -96,9 +99,9 @@ public class ClienteDAO {
     }
 
     public void deletarClienteDAO(String cpf) {
-        Connection con = Conexao.getConexao();
 
         try {
+            Connection con = Conexao.getConexao();
             String sql = "delete from clientes where cpf = ?";
             PreparedStatement pst = con.prepareStatement(sql);
             pst.setString(1, cpf);
@@ -110,8 +113,10 @@ public class ClienteDAO {
     }
 
     public void atualizaClienteByDoc(Cliente cVO) {
-        Connection con = Conexao.getConexao();
+
         try {
+            Connection con = Conexao.getConexao();
+
             String sql = "update set nome = ?, endereco = ?, telefone = ? "
                     + "where cpf = ?";
             PreparedStatement pst = con.prepareStatement(sql);

@@ -13,6 +13,8 @@ import controller.CVendaLivro;
 import java.util.Scanner;
 import model.Cliente;
 import model.Editora;
+import services.ClienteServicos;
+import services.ServicosFactory;
 
 /**
  *
@@ -30,12 +32,25 @@ public class INF3M212LivrariaPOO {
         Scanner leiaNum = new Scanner(System.in);
         int num = 99;
         try {
-            return leia.nextInt();
+            return leiaNum.nextInt();
         } catch (Exception e) {
             System.out.println("Tente Novamente");
             leiaNumInt();
+
         }
-        return 0;
+        return num;
+    }
+
+    public static float leiaNumFloat() {
+        Scanner leiaNum = new Scanner(System.in);
+        float num = 99;
+        try {
+            return leiaNum.nextFloat();
+        } catch (Exception e) {
+            System.out.println("Tente Novamente");
+            leiaNumFloat();
+        }
+        return num;
     }
 
     public static void menuP() {
@@ -77,46 +92,52 @@ public class INF3M212LivrariaPOO {
         String cnpj = null;
         String endereco;
         String telefone;
-
+        ClienteServicos clienteS = ServicosFactory.getClienteServicos();
         System.out.println("cadastro de cliente");
         System.out.println("Informe CPF");
-        boolean cpFis;
+        boolean cpfIs;
         int opCPF;
         do {
+
             cpf = leia.nextLine();
-            cpFis = Validadores.isCPF(cpf);
-        } while (!Validadores.isCPF(cpf));
-        if (!cpFis) {
-            System.out.println("CPF invalido +\n deseja tentar novamente? 1- Sim |2 - Não");
-            opCPF = leiaNumInt();
-            if (opCPF == 1) {
-                System.out.println("Informe o CPF: ");
-            } else if (opCPF == 2) {
-                System.out.println("Cadastro cancelado pelo usuário!");
+            cpfIs = Validadores.isCPF(cpf);
+
+            if (!cpfIs) {
+                System.out.println("CPF invalido \n deseja tentar novamente? 1- Sim |2 - Não");
+                opCPF = leiaNumInt();
+                if (opCPF == 1) {
+                    System.out.println("Informe o CPF: ");
+                } else if (opCPF == 2) {
+                    System.out.println("Cadastro cancelado pelo usuário!");
+                    break;
+
+                }
+            } else if (clienteS.buscarClientebyCPF(cpf) != null) {
+                System.out.println("Cliente ja cadastrado");
+            } else {
+                System.out.println("Informe o nome:");
+                nomeCliente = leia.nextLine();
+                System.out.println("Informe telefone: ");
+                telefone = leia.nextLine();
+                System.out.println("Informe o endereço: ");
+                endereco = leia.nextLine();
+                idCliente = cadCliente.geraID();
+                Cliente cli = new Cliente(idCliente, nomeCliente, cpf, cnpj, endereco, telefone);
+
+                clienteS.cadCliente(cli);
+
+                cadCliente.addCliente(cli);
+                System.out.println("Cliente cadastrado com sucesso!");
 
             }
-        }
-        while (!cpFis);
-        if (cadCliente.getClienteCPF(cpf) != null) {
-            System.out.println("Cliente ja cadastrado");
-        } else {
-            System.out.println("Informe o nome:");
-            nomeCliente = leia.nextLine();
-            System.out.println("Informe telefone: ");
-            telefone = leia.nextLine();
-            System.out.println("Informe o endereço: ");
-            endereco = leia.nextLine();
-            idCliente = cadCliente.geraID();
-            Cliente cli = new Cliente(idCliente, nomeCliente, cpf, cnpj, endereco, telefone);
-            cadCliente.addCliente(cli);
-            System.out.println("Cliente cadastrado com sucesso!");
 
-        }
-
+        } while (!cpfIs);
     }
 
     public static void listarClientes() {
-        for (Cliente cli : cadCliente.getClientes()) {
+        ClienteServicos clienteS = ServicosFactory.getClienteServicos();
+        for (Cliente cli : clienteS.getClientes()) {
+
             System.out.println("---");
             System.out.println("Cpf:\t" + cli.getCpf());
             System.out.println("Nme:\t" + cli.getNomeCliente());
@@ -132,7 +153,8 @@ public class INF3M212LivrariaPOO {
         if (Validadores.isCPF(cpf)) {
             Cliente cli = cadCliente.getClienteCPF(cpf);
             if (cli != null) {
-                cadCliente.removeCliente(cli);
+                ClienteServicos clienteS = ServicosFactory.getClienteServicos();
+                clienteS.deletarCliente(cpf);
                 System.out.println("Cliente delletado com sucesso!");
 
             } else {
@@ -237,9 +259,13 @@ public class INF3M212LivrariaPOO {
                 if (opEditar == 3 || opEditar == 4) {
                     System.out.println("Informe o telefone:");
                     cli.setTelefone(leia.nextLine());
+
                     if (opEditar < 1 || opEditar > 4) {
-                        cli.setNomeCliente(leia.nextLine());
+                        System.out.println("Opção invalida");
                     }
+
+                    ClienteServicos clienteS = ServicosFactory.getClienteServicos();
+                    clienteS.atualizarCliente(cli);
                 }
                 /*
                 switch (opEditar) {
@@ -322,17 +348,18 @@ public class INF3M212LivrariaPOO {
             System.out.println("Editora cadastrada com sucesso!");
         }
     }
-   public static void listarEditora(){
-     for (Editora ed : cadEditora.getEditoras()) {
+
+    public static void listarEditora() {
+        for (Editora ed : cadEditora.getEditoras()) {
             System.out.println("---");
             System.out.println("Cnpj:\t" + ed.getCnpj());
             System.out.println("Nme:\t" + ed.getNmEditora());
             System.out.println("fone\t" + ed.getTelefone());
 
-        }  
-   }
-   
-   public static void deletarEditora() {
+        }
+    }
+
+    public static void deletarEditora() {
         System.out.println("Deletar editora");
         System.out.println("Informe o cnpj: ");
         String cnpj = leia.next();
@@ -357,6 +384,6 @@ public class INF3M212LivrariaPOO {
             System.out.println("fone\t" + edi.getTelefone());
 
         }
-   }  
-    
+    }
+
 }
