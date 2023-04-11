@@ -5,15 +5,21 @@
  */
 package inf3m212.livrariapoo;
 
-import JavaPackage.Validadores;
 import controller.CCliente;
 import controller.CEditora;
-import controller.Clivro;
+import controller.CLivro;
 import controller.CVendaLivro;
+import java.sql.SQLException;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import util.Validadores;
 import java.util.Scanner;
 import model.Cliente;
 import model.Editora;
+import model.Livro;
+import model.VendaLivro;
 import services.ClienteServicos;
+import services.EditoraServicos;
 import services.ServicosFactory;
 
 /**
@@ -24,19 +30,18 @@ public class INF3M212LivrariaPOO {
 
     public static CCliente cadCliente = new CCliente();
     public static CEditora cadEditora = new CEditora();
-    public static Clivro cadLivro = new Clivro();
-    public static CVendaLivro cadCVendaLivro = new CVendaLivro();
+    public static CLivro cadLivro = new CLivro();
+    public static CVendaLivro cadVendaLivro = new CVendaLivro();
     public static Scanner leia = new Scanner(System.in);
 
     public static int leiaNumInt() {
         Scanner leiaNum = new Scanner(System.in);
         int num = 99;
         try {
-            return leiaNum.nextInt();
+            num = leiaNum.nextInt();
         } catch (Exception e) {
-            System.out.println("Tente Novamente");
-            leiaNumInt();
-
+            System.out.println("Tente novamente!");
+            leiaNum.nextLine();
         }
         return num;
     }
@@ -45,19 +50,19 @@ public class INF3M212LivrariaPOO {
         Scanner leiaNum = new Scanner(System.in);
         float num = 99;
         try {
-            return leiaNum.nextFloat();
+            num = leiaNum.nextFloat();
         } catch (Exception e) {
-            System.out.println("Tente Novamente");
-            leiaNumFloat();
+            System.out.println("Tente novamente!");
+            leiaNum.nextLine();
         }
         return num;
     }
 
     public static void menuP() {
-        System.out.println("..: Livraria :..");
-        System.out.println("1 - Ger Clientes");
-        System.out.println("2 - Ger Editoras");
-        System.out.println("3 - Ger Livros");
+        System.out.println(".: Livraria :.");
+        System.out.println("1 - Ger. Clientes");
+        System.out.println("2 - Ger. Editoras");
+        System.out.println("3 - Ger. Livros");
         System.out.println("4 - Venda Livro");
         System.out.println("0 - Sair");
         System.out.print("Escolha uma opção: ");
@@ -76,12 +81,12 @@ public class INF3M212LivrariaPOO {
                 tpCad = "Livro";
                 break;
         }
-        System.out.println("Ger. " + tpCad);
+        System.out.println(".: Ger. " + tpCad + " :.");
         System.out.println("1 - Cadastrar " + tpCad);
         System.out.println("2 - Editar " + tpCad);
         System.out.println("3 - Listar " + tpCad + "s");
         System.out.println("4 - Deletar " + tpCad);
-        System.out.println("0 - Voltar ");
+        System.out.println("0 - Voltar");
         System.out.print("Escolha uma opção: ");
     }
 
@@ -93,96 +98,73 @@ public class INF3M212LivrariaPOO {
         String endereco;
         String telefone;
         ClienteServicos clienteS = ServicosFactory.getClienteServicos();
-        System.out.println("cadastro de cliente");
-        System.out.println("Informe CPF");
+
+        System.out.println("-- Cadastro de Cliente --");
+        System.out.print("Informe o CPF: ");
         boolean cpfIs;
         int opCPF;
         do {
-
             cpf = leia.nextLine();
             cpfIs = Validadores.isCPF(cpf);
-
             if (!cpfIs) {
-                System.out.println("CPF invalido \n deseja tentar novamente? 1- Sim |2 - Não");
+                System.out.println("CPF inválido!"
+                        + "\nDeseja tentar novamente? 1 - Sim | 2 - Não");
                 opCPF = leiaNumInt();
                 if (opCPF == 1) {
-                    System.out.println("Informe o CPF: ");
+                    System.out.print("Informe o CPF: ");
                 } else if (opCPF == 2) {
                     System.out.println("Cadastro cancelado pelo usuário!");
-                    break;
-
+                    return;
                 }
-            } else if (clienteS.buscarClientebyCPF(cpf) != null) {
-                System.out.println("Cliente ja cadastrado");
-            } else {
-                System.out.println("Informe o nome:");
-                nomeCliente = leia.nextLine();
-                System.out.println("Informe telefone: ");
-                telefone = leia.nextLine();
-                System.out.println("Informe o endereço: ");
-                endereco = leia.nextLine();
-                idCliente = cadCliente.geraID();
-                Cliente cli = new Cliente(idCliente, nomeCliente, cpf, cnpj, endereco, telefone);
-
-                clienteS.cadCliente(cli);
-
-                cadCliente.addCliente(cli);
-                System.out.println("Cliente cadastrado com sucesso!");
-
             }
-
         } while (!cpfIs);
-    }
+        if (clienteS.buscarClientebyCPF(cpf).getCpf() != null) {
+            System.out.println("Cliente já cadastrado!");
+        } else {
+            System.out.print("Informe o nome: ");
+            nomeCliente = leia.nextLine().toUpperCase();
+            System.out.print("Informe o telefone: ");
+            telefone = leia.nextLine();
+            System.out.print("Informe o endereço: ");
+            endereco = leia.nextLine().toUpperCase();
+            idCliente = cadCliente.geraID();
+            Cliente cli = new Cliente(idCliente, nomeCliente, cpf,
+                    cnpj, endereco, telefone);
 
-    public static void listarClientes() {
-        ClienteServicos clienteS = ServicosFactory.getClienteServicos();
-        for (Cliente cli : clienteS.getClientes()) {
-
-            System.out.println("---");
-            System.out.println("Cpf:\t" + cli.getCpf());
-            System.out.println("Nme:\t" + cli.getNomeCliente());
-            System.out.println("fone\t" + cli.getTelefone());
-
+            clienteS.cadCliente(cli);
+            //cadCliente.addCliente(cli);
+            System.out.println("Cliente cadastrado com sucesso!");
         }
-    }
+    }//fim cadastrarCliente
 
     public static void deletarCliente() {
-        System.out.println("Deletar cliente");
-        System.out.println("Informe o cpf: ");
-        String cpf = leia.next();
+        System.out.println("-- Deletar Cliente --");
+        System.out.print("Informe o cpf: ");
+        String cpf = leia.nextLine();
+        ClienteServicos clienteS = ServicosFactory.getClienteServicos();
         if (Validadores.isCPF(cpf)) {
-            Cliente cli = cadCliente.getClienteCPF(cpf);
+            Cliente cli = clienteS.buscarClientebyCPF(cpf);
             if (cli != null) {
-                ClienteServicos clienteS = ServicosFactory.getClienteServicos();
+                //cadCliente.removeCliente(cli);
                 clienteS.deletarCliente(cpf);
-                System.out.println("Cliente delletado com sucesso!");
-
+                System.out.println("Cliente deletado com sucesso!");
             } else {
-                System.out.println("cliente não consta na base de dados!");
+                System.out.println("Cliente não consta na base de dados!");
             }
-
         } else {
-            System.out.println("CPF invalido!");
+            System.out.println("CPF inválido!");
         }
-
-        for (Cliente cli : cadCliente.getClientes()) {
-            System.out.println("---");
-            System.out.println("Cpf:\t" + cli.getCpf());
-            System.out.println("Nme:\t" + cli.getNomeCliente());
-            System.out.println("fone\t" + cli.getTelefone());
-
-        }
-    }
+    }//fim deletarCliente
 
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws SQLException {
         // TODO code application logic here
         cadCliente.mockClientes();
         cadEditora.mockEditoras();
         cadLivro.mockLivros();
-        cadCVendaLivro.mockVendaLivros();
+        cadVendaLivro.mockVendaLivros();
         int opM;
 
         do {
@@ -198,110 +180,147 @@ public class INF3M212LivrariaPOO {
                         opSM = leiaNumInt();
                         switch (opSM) {
                             case 1:
-                                System.out.println("--cadastra--");
-                                cadastrarCliente();
+                                System.out.println("-- Cadastrar --");
+                                //usar opM pra definir qual cadastro
+                                if (opM == 1) {
+                                    cadastrarCliente();
+                                } else if (opM == 2) {
+                                    cadastrarEditora();
+                                } else if (opM == 3) {
+                                    cadastrarLivro();
+                                }
                                 break;
                             case 2:
-                                System.out.println("--Editar--");
-
-                                editarCliente();
+                                System.out.println("-- Editar --");
+                                if (opM == 1) {
+                                    editarCliente();
+                                } else if (opM == 2) {
+                                    editarEditora();
+                                } else if (opM == 3) {
+                                    editarLivro();
+                                }
                                 break;
                             case 3:
-                                System.out.println("--Listar--");
-                                listarClientes();
+                                System.out.println("-- Listar --");
+                                if (opM == 1) {
+                                    listarClientes();
+                                } else if (opM == 2) {
+                                    listarEditora();
+                                } else if (opM == 3) {
+                                    listarLivro();
+                                }
                                 break;
                             case 4:
-                                System.out.println("--Deletar--");
-                                deletarCliente();
+                                System.out.println("-- Deletar --");
+                                if (opM == 1) {
+                                    deletarCliente();
+                                } else if (opM == 2) {
+                                    deletarEditora();
+                                } else if (opM == 3) {
+                                    deletarLivro();
+                                }
                                 break;
                             case 0:
-                                System.out.println("--Menu Principal--");
+                                System.out.println("-- Menu Principal --");
                                 break;
                             default:
-                                System.out.println("Opção invalida,tente novamente!");
+                                System.out.println("Opção inválida, tente novamente!");
                                 break;
                         }
-                    } while (opSM != 0);
+                    } while (opSM != 0);//fim subMenu
                     break;
                 case 4:
-                    System.out.println("Venda Livro");
+                    System.out.println("-- Venda Livro --");
+                    vendaLivro();
                     break;
                 case 0:
-                    System.out.println("aplicação encerrada pelo usuário");
+                    System.out.println("Aplicação encerrada pelo usuário!");
+                    break;
                 default:
-                    System.out.println("Opção invalida ");
+                    System.out.println("Opção inválida, tente novamente!");
                     break;
             }
-        } while (opM != 0);
+        } while (opM != 0);//fim Sistema
+
+    }
+
+    private static void listarClientes() {
+        ClienteServicos clienteS = ServicosFactory.getClienteServicos();
+        for (Cliente cli : clienteS.getClientes()) {
+            System.out.println("---");
+            System.out.println("CPF:\t" + cli.getCpf());
+            System.out.println("Nome:\t" + cli.getNomeCliente());
+            System.out.println("Fone:\t" + cli.getTelefone());
+        }
     }
 
     private static void editarCliente() {
-        System.out.println("--editar Cliente--");
-        System.out.println("Informe o cpf: ");
+        System.out.println("-- Editar Cliente --");
+        System.out.print("Informe o CPF: ");
         String cpf = leia.nextLine();
         if (Validadores.isCPF(cpf)) {
             Cliente cli = cadCliente.getClienteCPF(cpf);
             if (cli != null) {
-                System.out.println("1-Nome:\t " + cli.getNomeCliente());
-                System.out.println("2-Endereço:\t " + cli.getEndereco());
-                System.out.println("3-fone:\t " + cli.getTelefone());
-                System.out.println("4-todos os campos acima?");
-                System.out.println("Qual campo deseja alterar? \n Digite aqui: ");
+                System.out.println("1 - Nome:\t" + cli.getNomeCliente());
+                System.out.println("2 - Endereço:\t" + cli.getEndereco());
+                System.out.println("3 - Fone:\t" + cli.getTelefone());
+                System.out.println("4 - Todos os campos acima?");
+                System.out.print("Qual campo deseja alterar?"
+                        + "\nDigite aqui: ");
                 int opEditar = leiaNumInt();
-                if (opEditar == 1 || opEditar == 4) {
-                    System.out.println("Informe o nome: ");
-                    cli.setNomeCliente(leia.nextLine());
+                //Sugestão Sérgio INF3M212
+                if (opEditar == 1 || opEditar == 4) {// "||" pipe significa "ou"
+                    System.out.print("Informe o nome: ");
+                    cli.setNomeCliente(leia.nextLine().toUpperCase());
                 }
                 if (opEditar == 2 || opEditar == 4) {
-                    System.out.println("Informe o endereço: ");
-                    cli.setEndereco(leia.nextLine());
+                    System.out.print("Informe o endereço: ");
+                    cli.setEndereco(leia.nextLine().toUpperCase());
                 }
                 if (opEditar == 3 || opEditar == 4) {
-                    System.out.println("Informe o telefone:");
+                    System.out.print("Informe o telefone: ");
                     cli.setTelefone(leia.nextLine());
-
-                    if (opEditar < 1 || opEditar > 4) {
-                        System.out.println("Opção invalida");
-                    }
-
-                    ClienteServicos clienteS = ServicosFactory.getClienteServicos();
-                    clienteS.atualizarCliente(cli);
                 }
+                if (opEditar < 1 || opEditar > 4) {
+                    System.out.println("Opção inválida!");
+                }
+                ClienteServicos clienteS = ServicosFactory.getClienteServicos();
+                clienteS.atualizarCliente(cli);
                 /*
                 switch (opEditar) {
                     case 1:
-                        System.out.println("Informe o nome: ");
+                        System.out.print("Informe o nome: ");
                         cli.setNomeCliente(leia.nextLine());
                         break;
                     case 2:
-                        System.out.println("Informe o endereço: ");
+                        System.out.print("Informe o endereço: ");
                         cli.setEndereco(leia.nextLine());
                         break;
                     case 3:
-                        System.out.println("Informe o telefone:");
+                        System.out.print("Informe o telefone: ");
                         cli.setTelefone(leia.nextLine());
                         break;
                     case 4:
                         System.out.println("Informe todos os campos abaixo:");
-                        System.out.println("Informe o nome: ");
+                        System.out.print("Informe o nome: ");
                         cli.setNomeCliente(leia.nextLine());
-                        System.out.println("Informe o endereço: ");
+                        System.out.print("Informe o endereço: ");
                         cli.setEndereco(leia.nextLine());
-                        System.out.println("Informe o telefone:");
+                        System.out.print("Informe o telefone: ");
                         cli.setTelefone(leia.nextLine());
                         break;
                     default:
-                        System.out.println("Opção invalida!");
+                        System.out.println("Opção inválida!");
+                        break;
                 }
                  */
-                System.out.println("Cliente:\n");
+                System.out.println("Cliente:\n" + cli.toString());
             } else {
                 System.out.println("Cliente não cadastrado!");
             }
         } else {
-            System.out.println("CPF invalido!");
+            System.out.println("CPF inválido!");
         }
-
     }
 
     public static void cadastrarEditora() {
@@ -311,79 +330,294 @@ public class INF3M212LivrariaPOO {
         String endereco;
         String telefone;
         String gerente;
+        EditoraServicos editoraS = ServicosFactory.getEditoraServicos();
 
-        System.out.println("cadastro de cliente");
-        System.out.println("Informe CNPJ");
+        System.out.println("-- Cadastrar Editora --");
+        System.out.print("Informe o CNPJ da Editora: ");
         boolean cnpjis;
-        int opCnpj;
+        int opCNPJ;
         do {
             cnpj = leia.nextLine();
             cnpjis = Validadores.isCNPJ(cnpj);
-        } while (!Validadores.isCNPJ(cnpj));
-        if (!cnpjis) {
-            System.out.println("Cnpj invalido +\n deseja tentar novamente? 1- Sim |2 - Não");
-            opCnpj = leiaNumInt();
-            if (opCnpj == 1) {
-                System.out.println("Informe o Cnpj: ");
-            } else if (opCnpj == 2) {
-                System.out.println("Cadastro cancelado pelo usuário!");
-
+            if (!cnpjis) {
+                System.out.print("CNPJ Invalido!"
+                        + "\nDeseja tentar novamente? 1 - Sim || 2 - Não: ");
+                opCNPJ = leiaNumInt();
+                if (opCNPJ == 1) {
+                    System.out.print("Informe o CNPJ: ");
+                } else if (opCNPJ == 2) {
+                    System.out.println("Cadastro encerrado pelo usuario!");
+                    return;
+                }
             }
-        }
-        while (!cnpjis);
-        if (cadEditora.getEditoraCNPJ(cnpj) != null) {
-            System.out.println("Editora  ja cadastrado");
+
+        } while (!cnpjis);
+
+        if (editoraS.buscarEditorabyCNPJ(cnpj).getCnpj() != null) {
+            System.out.println("Editora já cadastrada!");
         } else {
-            System.out.println("Informe o nome da Editora:");
-            nmEditora = leia.nextLine();
-            System.out.println("Informe telefone: ");
+            System.out.print("Informe o nome da editora: ");
+            nmEditora = leia.nextLine().toUpperCase();
+            System.out.print("Informe o telefone da editora: ");
             telefone = leia.nextLine();
-            System.out.println("Informe o endereço: ");
-            endereco = leia.nextLine();
+            System.out.print("Informe o endereço da editora: ");
+            endereco = leia.nextLine().toUpperCase();
+            System.out.print("Informe o nome do gerente: ");
+            gerente = leia.nextLine().toUpperCase();
             idEditora = cadEditora.geraID();
-            System.out.println("informe nome do gerente:");
-            gerente = leia.nextLine();
-            Editora ed = new Editora(idEditora, nmEditora, cnpj, endereco, telefone, gerente);
-            cadEditora.addEditora(ed);
+
+            Editora edi = new Editora(idEditora, nmEditora, cnpj, endereco, telefone, gerente);
+            //cadEditora.addEditora(edi);
+            editoraS.cadEditora(edi);
             System.out.println("Editora cadastrada com sucesso!");
         }
-    }
+    }//fim do cadastrarEditora
+
+    private static void editarEditora() {
+        EditoraServicos editoraS = ServicosFactory.getEditoraServicos();
+        System.out.println("-- Editar Editora --");
+        System.out.print("Informe o CNPJ: ");
+        String cnpj = leia.nextLine();
+        if (Validadores.isCNPJ(cnpj)) {
+            Editora edi = editoraS.buscarEditorabyCNPJ(cnpj);
+            if (edi.getCnpj() != null) {
+                System.out.println("1 - Nome:\t" + edi.getNmEditora());
+                System.out.println("2 - Endereço:\t" + edi.getEndereco());
+                System.out.println("3 - Fone:\t" + edi.getTelefone());
+                System.out.println("4 - Todas as opções acima");
+                System.out.print("Qual das opções deseja alterar? 1 || 2 || 3 || 4\n Digite aqui: ");
+                int opEditar = leiaNumInt();
+                switch (opEditar) {
+                    case 1:
+                        System.out.print("Informe o nome: ");
+                        edi.setNmEditora(leia.nextLine());
+                        break;
+                    case 2:
+                        System.out.print("Informe o endereço: ");
+                        edi.setEndereco(leia.nextLine());
+                        break;
+                    case 3:
+                        System.out.println("Informe o fone: ");
+                        edi.setTelefone(leia.nextLine());
+                        break;
+                    case 4:
+                        System.out.println("Informe todos os campos abaixo:");
+                        System.out.print("Informe o nome: ");
+                        edi.setNmEditora(leia.nextLine());
+                        System.out.print("Informe o endereço: ");
+                        edi.setEndereco(leia.nextLine());
+                        System.out.print("Informe o fone: ");
+                        edi.setTelefone(leia.nextLine());
+                        break;
+                    default:
+                        System.out.println("Opção inválida!");
+                        break;
+                }
+                editoraS.atualizarEditora(edi);
+                System.out.println("Editora:\n" + edi.toString());
+            } else {
+                System.out.println("Editora já cadastrado!");
+            }
+        } else {
+            System.out.println("CNPJ inválido!");
+        }
+    }//fim do editarEditora
 
     public static void listarEditora() {
-        for (Editora ed : cadEditora.getEditoras()) {
-            System.out.println("---");
-            System.out.println("Cnpj:\t" + ed.getCnpj());
-            System.out.println("Nme:\t" + ed.getNmEditora());
-            System.out.println("fone\t" + ed.getTelefone());
+        EditoraServicos editoraS = ServicosFactory.getEditoraServicos();
+        if (editoraS.getEditoras().isEmpty()) {
+            System.out.println("Não existem Editoras cadastradas!");
+        } else {
+            for (Editora edi : editoraS.getEditoras()) {
+                System.out.println("----");
+                System.out.println("CNPJ:\t" + edi.getCnpj());
+                System.out.println("Nome:\t" + edi.getNmEditora());
+                System.out.println("Fone:\t" + edi.getTelefone());
+            }
 
+        }
+    }//fim listarCliente
+
+    public static void deletarEditora() {
+        EditoraServicos editoraS = ServicosFactory.getEditoraServicos();
+        System.out.println("-- Deletar Editora --");
+        System.out.print("Informe o CNPJ: ");
+        String cnpj = leia.nextLine();
+
+        if (Validadores.isCNPJ(cnpj)) {
+            Editora edi = editoraS.buscarEditorabyCNPJ(cnpj);
+            if (edi != null) {
+                //cadEditora.removeEditora(edi);
+                editoraS.deletarEditora(cnpj);
+                System.out.println("Editora deletada com sucesso!");
+            } else {
+                System.out.println("Editora não consta na base de dados!");
+            }
+        } else {
+            System.out.println("CNPJ inválido!");
+        }
+    }//fim deletarEditora
+
+    private static void cadastrarLivro() {
+        System.out.println("-- Cadastro de Livro --");
+        System.out.print("Informe o ISBN: ");
+        String isbn = leia.nextLine();
+        if (cadLivro.getLivroISBN(isbn) != null) {
+            System.out.println("Livro já cadastrado!");
+        } else {
+            int idLivro = cadLivro.geraID();
+            System.out.print("Informe o Titulo: ");
+            String titulo = leia.nextLine().toUpperCase();
+            System.out.print("Informe o autor: ");
+            String autor = leia.nextLine().toUpperCase();
+            System.out.print("Informe o assunto: ");
+            String assunto = leia.nextLine().toUpperCase();
+            System.out.print("Informe o estoque: ");
+            int estoque = leiaNumInt();
+            System.out.print("Informe o preço: ");
+            float preco = leiaNumFloat();
+            boolean isCNPJ = false;
+            Editora idEditora = null;
+            do {
+                System.out.print("Informe o CNPJ da Editora: ");
+                String cnpj = leia.nextLine();
+                isCNPJ = Validadores.isCNPJ(cnpj);
+                if (isCNPJ) {
+                    idEditora = cadEditora.getEditoraCNPJ(cnpj);
+                    if (idEditora == null) {
+                        System.out.println("Editora não cadastrada!");
+                        isCNPJ = false;
+                    } else {
+                        System.out.println("Editora: " + idEditora.getNmEditora());
+                    }
+                } else {
+                    System.out.println("CNPJ inválido!");
+                }
+            } while (!isCNPJ);
+            Livro li = new Livro(idLivro, titulo, autor, assunto, isbn, estoque, preco, idEditora);
+            cadLivro.addLivro(li);
+            System.out.println("Livro cadastrado com sucesso!");
         }
     }
 
-    public static void deletarEditora() {
-        System.out.println("Deletar editora");
-        System.out.println("Informe o cnpj: ");
-        String cnpj = leia.next();
-        if (Validadores.isCPF(cnpj)) {
-            Editora edi = cadEditora.getEditoraCNPJ(cnpj);
-            if (edi != null) {
-                cadEditora.removeEditora(edi);
-                System.out.println("Cliente delletado com sucesso!");
-
-            } else {
-                System.out.println("cliente não consta na base de dados!");
+    private static void editarLivro() {
+        System.out.println("-- Editar Livro --");
+        System.out.print("Informe o ISBN: ");
+        String isbn = leia.nextLine();
+        Livro li = cadLivro.getLivroISBN(isbn);
+        if (li != null) {
+            System.out.println("Livro selecionado: " + li.getTitulo());
+            System.out.println("O que deseja alterar:");
+            System.out.println("1 - Titulo");
+            System.out.println("2 - Estoque");
+            System.out.println("3 - Preço");
+            System.out.println("4 - Todos acima");
+            System.out.println("0 - Cancelar");
+            System.out.print("Digite aqui: ");
+            int op = leiaNumInt();
+            if (op == 1 || op == 4) {
+                System.out.println("Titulo atual:\t" + li.getTitulo());
+                System.out.print("Informe novo titulo: ");
+                li.setTitulo(leia.nextLine().toUpperCase());
             }
-
+            if (op == 2 || op == 4) {
+                System.out.println("Estoque atual:\t" + li.getEstoque());
+                System.out.print("Informe novo estoque: ");
+                li.setEstoque(leiaNumInt());
+            }
+            if (op == 3 || op == 4) {
+                System.out.println("Preço atual:\t" + li.getPreco());
+                System.out.print("Informe novo preço: ");
+                li.setPreco(leiaNumFloat());
+            }
+            if (op == 0) {
+                System.out.println("Operação cancelada pelo usuário!");
+            }
+            System.out.println("Livro Editado:");
+            System.out.println(li.toString());
         } else {
-            System.out.println("CPF invalido!");
+            System.out.println("ISBN inválido!");
         }
+    }
 
-        for (Editora edi : cadEditora.getEditoras()) {
-            System.out.println("---");
-            System.out.println("cnpj:\t" + edi.getCnpj());
-            System.out.println("Nme:\t" + edi.getNmEditora());
-            System.out.println("fone\t" + edi.getTelefone());
-
+    private static void listarLivro() {
+        System.out.println("-- Lista de Livros --");
+        for (Livro livro : cadLivro.getLivros()) {
+            /*System.out.println("---\nISBN:\t\t" + livro.getIsbn());
+            System.out.println("Titulo:\t\t" + livro.getTitulo());
+            System.out.println("Assunto:\t" + livro.getAssunto());
+            System.out.println("Autor:\t\t" + livro.getAutor());
+            System.out.println("Estoque:\t" + livro.getEstoque());
+            System.out.println("Preço:\t\t" + livro.getPreco());
+            System.out.println("Editora:\t" + livro.getIdEditora().getNmEditora());
+             */
+            System.out.println(livro.toString());
         }
+    }
+
+    private static void deletarLivro() {
+        System.out.println("-- Deletar Livro --");
+        System.out.print("Infome o ISBN: ");
+        String isbn = leia.nextLine();
+        Livro li = cadLivro.getLivroISBN(isbn);
+        if (li != null) {
+            System.out.println("Livro " + li.getTitulo() + " será deletado!");
+            cadLivro.removeLivro(li);
+        } else {
+            System.out.println("ISBN não encontrado!");
+        }
+    }
+
+    private static void vendaLivro() {
+        int idVendaLivro;
+        Cliente idCliente = null;
+        ArrayList<Livro> livros = new ArrayList<>();
+        float subTotal = 0;
+        LocalDate dataVenda = LocalDate.now();
+
+        do {//Seleciona Cliente
+            System.out.print("Informe o CPF do Cliente: ");
+            String CPF = leia.nextLine();
+            if (Validadores.isCPF(CPF)) {
+                idCliente = cadCliente.getClienteCPF(CPF);
+                if (idCliente == null) {
+                    System.out.println("Cliente não cadastrado, tente novamente!");
+                }
+            } else {
+                System.out.println("CPF inválido, tente novamente!");
+            }
+        } while (idCliente == null);
+
+        boolean venda = true;
+        do {
+            Livro li = null;
+            String isbn;
+            do {
+                System.out.print("Informe o ISBN: ");
+                isbn = leia.nextLine();
+                li = cadLivro.getLivroISBN(isbn);
+                if (li == null) {
+                    System.out.println("Livro não encontrado, tente novamente!");
+                }
+            } while (li == null);
+            if (li.getEstoque() > 0) {
+                livros.add(li);
+                cadLivro.atualizaEstoqueLivro(li.getIsbn());
+                subTotal += li.getPreco();
+            } else {
+                System.out.println(li.getTitulo() + " não tem estoque");
+            }
+            System.out.println("Deseja comprar mais livros nesta venda?"
+                    + "\n1 - Sim | 2 - Não"
+                    + "\nDigite: ");
+            if (leiaNumInt() == 2) {
+                venda = false;
+            }
+        } while (venda);
+        idVendaLivro = cadVendaLivro.geraID();
+        VendaLivro vl = new VendaLivro(idVendaLivro, idCliente, livros, subTotal, dataVenda);
+        cadVendaLivro.addVendaLivro(vl);
+        System.out.println("-- Venda --\n" + vl.toString());
     }
 
 }

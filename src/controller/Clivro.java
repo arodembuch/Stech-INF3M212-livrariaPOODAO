@@ -14,7 +14,7 @@ import model.Livro;
  *
  * @author jbferraz
  */
-public class Clivro {
+public class CLivro {
 
     ArrayList<Livro> livros = new ArrayList<>();
     int idLivro = 1;

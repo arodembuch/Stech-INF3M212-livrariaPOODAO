@@ -11,8 +11,12 @@ package services;
  */
 public class ServicosFactory {
    private static   ClienteServicos cServicos = new ClienteServicos();
+   private static   EditoraServicos eServicos = new EditoraServicos();
    
    public static ClienteServicos getClienteServicos(){
        return cServicos;
+   }
+   public static EditoraServicos getEditoraServicos(){
+       return eServicos;
    }
 }
