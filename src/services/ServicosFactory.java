@@ -10,18 +10,20 @@ package services;
  * @author 182020025
  */
 public class ServicosFactory {
-   private static   ClienteServicos cServicos = new ClienteServicos();
-   private static   EditoraServicos eServicos = new EditoraServicos();
-  private static LivroServico lServicos = new LivroServico();
-           
-   public static ClienteServicos getClienteServicos(){
-       return cServicos;
-   }
-   public static EditoraServicos getEditoraServicos(){
-       return eServicos;
-   }
-   
-   public static LivroServico getLivroServico(){
-       return lServicos;
-   }
+
+    private static ClienteServicos cServicos = new ClienteServicos();
+    private static EditoraServicos eServicos = new EditoraServicos();
+    private static LivroServico lServicos = new LivroServico();
+
+    public static ClienteServicos getClienteServicos() {
+        return cServicos;
+    }
+
+    public static EditoraServicos getEditoraServicos() {
+        return eServicos;
+    }
+
+    public static LivroServico getLivroServico() {
+        return lServicos;
+    }
 }

@@ -25,7 +25,10 @@ public class LivroServico {
       LivroDAO livroDAO = DAOFactory.getLivroDAO(); 
       return livroDAO.getLivro();
     }
-    
+     public Livro buscarLivroISBN(String isbn){
+      LivroDAO livroDAO = DAOFactory.getLivroDAO(); 
+      return livroDAO.getLivrobyISBN(isbn);
+    }
     public void deletarLivro(String isbn){
       LivroDAO livroDAO = DAOFactory.getLivroDAO();
       livroDAO.deletarLivroDAO(isbn);

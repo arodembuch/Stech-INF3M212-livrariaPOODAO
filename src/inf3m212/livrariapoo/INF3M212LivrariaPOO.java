@@ -20,6 +20,7 @@ import model.Livro;
 import model.VendaLivro;
 import services.ClienteServicos;
 import services.EditoraServicos;
+import services.LivroServico;
 import services.ServicosFactory;
 
 /**
@@ -459,12 +460,15 @@ public class INF3M212LivrariaPOO {
     }//fim deletarEditora
 
     private static void cadastrarLivro() {
+        LivroServico livroS = ServicosFactory.getLivroServico();
+        EditoraServicos editoraS = ServicosFactory.getEditoraServicos();
         System.out.println("-- Cadastro de Livro --");
         System.out.print("Informe o ISBN: ");
         String isbn = leia.nextLine();
-        if (cadLivro.getLivroISBN(isbn) != null) {
+        if (livroS.buscarLivroISBN(isbn).getIsbn() != null) {
             System.out.println("Livro já cadastrado!");
         } else {
+            //não precisa alterar para o servico do livro pois o id sera gerido pelo banco
             int idLivro = cadLivro.geraID();
             System.out.print("Informe o Titulo: ");
             String titulo = leia.nextLine().toUpperCase();
@@ -483,7 +487,7 @@ public class INF3M212LivrariaPOO {
                 String cnpj = leia.nextLine();
                 isCNPJ = Validadores.isCNPJ(cnpj);
                 if (isCNPJ) {
-                    idEditora = cadEditora.getEditoraCNPJ(cnpj);
+                    idEditora = editoraS.buscarEditorabyCNPJ(cnpj);
                     if (idEditora == null) {
                         System.out.println("Editora não cadastrada!");
                         isCNPJ = false;
@@ -495,44 +499,44 @@ public class INF3M212LivrariaPOO {
                 }
             } while (!isCNPJ);
             Livro li = new Livro(idLivro, titulo, autor, assunto, isbn, estoque, preco, idEditora);
-            cadLivro.addLivro(li);
+            //cadLivro.addLivro(li);
+            livroS.cadastrarLivro(li);
             System.out.println("Livro cadastrado com sucesso!");
         }
     }
 
     private static void editarLivro() {
+        LivroServico livroS = ServicosFactory.getLivroServico();
         System.out.println("-- Editar Livro --");
         System.out.print("Informe o ISBN: ");
         String isbn = leia.nextLine();
-        Livro li = cadLivro.getLivroISBN(isbn);
-        if (li != null) {
+        Livro li = livroS.buscarLivroISBN(isbn);
+        if (li.getIsbn() != null) {
             System.out.println("Livro selecionado: " + li.getTitulo());
             System.out.println("O que deseja alterar:");
-            System.out.println("1 - Titulo");
-            System.out.println("2 - Estoque");
-            System.out.println("3 - Preço");
-            System.out.println("4 - Todos acima");
+            System.out.println("1 - Estoque");
+            System.out.println("2- Preço");
+            System.out.println("3 - Todos acima");
             System.out.println("0 - Cancelar");
             System.out.print("Digite aqui: ");
             int op = leiaNumInt();
-            if (op == 1 || op == 4) {
-                System.out.println("Titulo atual:\t" + li.getTitulo());
-                System.out.print("Informe novo titulo: ");
-                li.setTitulo(leia.nextLine().toUpperCase());
-            }
-            if (op == 2 || op == 4) {
+            
+            if (op == 1 || op == 3) {
                 System.out.println("Estoque atual:\t" + li.getEstoque());
                 System.out.print("Informe novo estoque: ");
                 li.setEstoque(leiaNumInt());
             }
-            if (op == 3 || op == 4) {
+            if (op == 2 || op == 3) {
                 System.out.println("Preço atual:\t" + li.getPreco());
                 System.out.print("Informe novo preço: ");
                 li.setPreco(leiaNumFloat());
             }
             if (op == 0) {
                 System.out.println("Operação cancelada pelo usuário!");
+                return;
             }
+            
+            livroS.atualizarLivro(li);
             System.out.println("Livro Editado:");
             System.out.println(li.toString());
         } else {
@@ -542,27 +546,35 @@ public class INF3M212LivrariaPOO {
 
     private static void listarLivro() {
         System.out.println("-- Lista de Livros --");
-        for (Livro livro : cadLivro.getLivros()) {
-            /*System.out.println("---\nISBN:\t\t" + livro.getIsbn());
+        LivroServico livroS = ServicosFactory.getLivroServico();
+
+        if (!livroS.buscarLivros().isEmpty()) {
+
+            for (Livro livro : livroS.buscarLivros()) {
+                /*System.out.println("---\nISBN:\t\t" + livro.getIsbn());
             System.out.println("Titulo:\t\t" + livro.getTitulo());
             System.out.println("Assunto:\t" + livro.getAssunto());
             System.out.println("Autor:\t\t" + livro.getAutor());
             System.out.println("Estoque:\t" + livro.getEstoque());
             System.out.println("Preço:\t\t" + livro.getPreco());
             System.out.println("Editora:\t" + livro.getIdEditora().getNmEditora());
-             */
-            System.out.println(livro.toString());
+                 */
+                System.out.println(livro.toString());
+            }
+        } else {
+            System.out.println("Não tenho livros cadastrados!");
         }
     }
 
     private static void deletarLivro() {
+        LivroServico livroS = ServicosFactory.getLivroServico();
         System.out.println("-- Deletar Livro --");
         System.out.print("Infome o ISBN: ");
         String isbn = leia.nextLine();
-        Livro li = cadLivro.getLivroISBN(isbn);
-        if (li != null) {
+        Livro li = livroS.buscarLivroISBN(isbn);
+        if (li.getIsbn() != null) {
             System.out.println("Livro " + li.getTitulo() + " será deletado!");
-            cadLivro.removeLivro(li);
+            livroS.deletarLivro(isbn);
         } else {
             System.out.println("ISBN não encontrado!");
         }
