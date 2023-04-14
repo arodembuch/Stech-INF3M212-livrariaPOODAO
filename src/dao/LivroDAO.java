@@ -79,7 +79,7 @@ public class LivroDAO {
         EditoraServicos editoraS = ServicosFactory.getEditoraServicos();
         try {
             Connection con = Conexao.getConexao();
-            String sql = "select * from livros where isbn = ?";
+            String sql = "select livro.*, e.cnpj from livros join editoras e using(ideditora)where sbn =?";
             PreparedStatement pst = con.prepareStatement(sql);
             pst.setString(1, isbn);
             ResultSet rs = pst.executeQuery();
